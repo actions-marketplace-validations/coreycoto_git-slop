@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.16.5 - 2026-10-06
+
+Fix compact-report path explanations and compare text that omitted real score
+movements (#149, #153). Retain bounded Dogfood failure context alongside the
+complete existing artifacts (#152). Update the Rust dependency graph while
+preserving report identifiers, machine contracts, and Rust 1.85 support (#165,
+#167).
+
+This candidate also includes the portable plugin refactor handoff and native
+maintainer cutover merged since 0.16.4. Dependency publication remains held
+pending #157; source qualification does not settle historical operations.
+
+See the [complete numbered 0.16.5 release notes](docs/releases/0.16.5.md).
+
+## 0.16.4 - 2026-10-01
+
+Fix JavaScript and TypeScript inline-test detection so ordinary `.test()` and
+`.split()` calls, identifier suffixes, comments, and strings cannot suppress
+verification gaps. Recognize real `describe`, `test`, and `it` definitions across
+whitespace and comment formatting, including `only` and `skip` modifiers.
+Preserve the existing hotspot scores and advisory CI policy.
+
+See the [complete numbered 0.16.4 release notes](docs/releases/0.16.4.md).
+
+## 0.16.3 - 2026-10-01
+
+Fix Drizzle Kit metadata being classified as editable source (#145). Recognize
+`_journal.json` and numbered `*_snapshot.json` files directly under
+`drizzle/meta/`, including package-prefixed paths. Preserve size and token
+findings in the observation feed with generator-investigation guidance, keeping
+migration history out of the source-intervention queue. Unrelated snapshot
+filenames and explicit consumer classification overrides retain their behavior.
+
+See the [complete numbered 0.16.3 release notes](docs/releases/0.16.3.md).
+
+## 0.16.2 - 2026-09-30
+
+This patch consolidates the Rust dependency and Codex Action updates, and ships
+the experimental advisory surface-area ledger added since the immutable 0.16.1
+crate. It preserves the Rust 1.85 minimum and keeps surface-area evidence
+outside enforcement gates.
+
+Fixes critical maintenance-pressure reports failing their own validation and
+breaking advisory CI (#143). Critical scores and bands are preserved across
+report indexes; compact and standard reports validate and remain consumable by
+`health`, `explain`, and the public Action.
+The Action installer now accepts the bundled schema catalog, fixing the archive
+layout mismatch that blocked 0.16.1 draft qualification.
+The automatic Docs Taxonomy workflow is removed; documentation taxonomy remains
+an on-demand task with deterministic repository validation in CI.
+
+See the [complete numbered 0.16.2 release notes](docs/releases/0.16.2.md).
+
 ## 0.16.1 - 2026-08-17
 
 This patch makes the policy advisor fail closed: provider-free context is the

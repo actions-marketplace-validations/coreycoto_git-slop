@@ -2,78 +2,70 @@
   "schema_version": 1,
   "acceptances": [
     {
-      "base_sha": "2bf88c292afb752561dcf66699fdcdd558af1312",
-      "rationale": "Reviewed 0.16.1 release-polish work intentionally expands provider-free advice, lifecycle receipts, schema routing, modular tests, and maintainer safety while the absolute repository policy remains green.",
+      "base_sha": "f6b2d39fc7420dd0df4255121ec572ef378fb27f",
+      "rationale": "Reviewed plugin-owned role adoption after native runtime cutover. Five generated roles preserve IDs and sandbox boundaries, specialize model and effort by purpose, and reference the qualified replacement skills. The parent retains mutation and publication authority. Bind only this baseline, exact role content and observed notice ceilings; preserve absolute policy and other regression checks.",
       "entries": [
         {
-          "path": "docs/commands.md",
-          "reason": "worse_band",
-          "severity": "notice",
-          "content_sha256": "f151ded27d24ab084654c6261af23b232ea32e20c6055bcec0eba8ab8fe8b9e3",
-          "maximum_slop_score": 38.1
-        },
-        {
-          "path": "docs/releases/0.16.1.md",
+          "path": ".codex/agents/dependency-patcher.toml",
           "reason": "material_score_increase",
           "severity": "notice",
-          "content_sha256": "66a79d4a57c703e32927b6eaaa4ff92e45e7eba285254f7312a924111c55a64c",
-          "maximum_slop_score": 25.8
+          "content_sha256": "b62d6b3c61ca08b1dc62f9d06a3a9e255b460e3159f98c5984933ef1c7039819",
+          "maximum_slop_score": 20.2
         },
         {
-          "path": "src/advice/context/build.rs",
-          "reason": "worse_band",
-          "severity": "notice",
-          "content_sha256": "46084802a9a5ebc38bb2fd758020c05b3f818a77ef27e9b1a28de631b075dcd4",
-          "maximum_slop_score": 22.9
-        },
-        {
-          "path": "src/cli/entry.rs",
-          "reason": "worse_band",
-          "severity": "notice",
-          "content_sha256": "325bc645005761be43fc9e46ac17b593f454af51689595d7610adf7e3ae18fc6",
-          "maximum_slop_score": 26.4
-        },
-        {
-          "path": "src/cli/init.rs",
+          "path": ".codex/agents/docs-taxonomist.toml",
           "reason": "material_score_increase",
           "severity": "notice",
-          "content_sha256": "90b0cd2fa9ed6b730835caed1110f3350f4d369eeab141d7510e369835ac0573",
-          "maximum_slop_score": 18.9
+          "content_sha256": "be566c3d0ce5b10e0512719a7d50dcb2d9e0e7f45c2ce3c325f7a8d71314b9a3",
+          "maximum_slop_score": 20.1
         },
         {
-          "path": "src/policy/lifecycle.rs",
+          "path": ".codex/agents/governance-auditor.toml",
           "reason": "material_score_increase",
           "severity": "notice",
-          "content_sha256": "42e0a47626f5404a49faf4d7f4cf4812786e90939a4934438397319286398d8e",
-          "maximum_slop_score": 31.2
+          "content_sha256": "c6685c9c6dd3fd7ffb9f2af3e96e4c11d3de8eb4bcac60a27a6b176fa1b6f60e",
+          "maximum_slop_score": 21.6
         },
         {
-          "path": "src/report/write/validation.rs",
+          "path": ".codex/agents/merge-gatekeeper.toml",
+          "reason": "material_score_increase",
+          "severity": "notice",
+          "content_sha256": "44e5254ee0e466ead0290ac3bd69de30101c1c19e9a5cee61915f5716bf26659",
+          "maximum_slop_score": 20.5
+        },
+        {
+          "path": ".codex/agents/release-publisher.toml",
+          "reason": "material_score_increase",
+          "severity": "notice",
+          "content_sha256": "a2154760f9d290d8fd2c7a415f51cdbb6d023745ec424ba1217af033026a5e7c",
+          "maximum_slop_score": 21.2
+        }
+      ]
+    },
+    {
+      "base_sha": "40004cdb3f30f54d6ffe7b335fb795a3347cf52f",
+      "rationale": "Three reviewed security-fixture notices: credential tests cross a moderate score boundary, CI guards cross compact to healthy context, and the acquisition fixture's required Actions isolation adds revision pressure while remaining compact and low-score. All retain zero duplication pressure. Preserve independent security coverage; exact content and observed ceilings bound this candidate.",
+      "entries": [
+        {
+          "path": "scripts/with-gh-steward.test.sh",
+          "reason": "material_score_increase",
+          "severity": "notice",
+          "content_sha256": "c4a28ca5aada4877d753815fc192e1f260b437575e7dca4476027ceb041f5abd",
+          "maximum_slop_score": 22.6
+        },
+        {
+          "path": "xtask/src/codex/runtime_tests.rs",
           "reason": "worse_band",
-          "severity": "warning",
-          "content_sha256": "d8f298de53c8553e3a7768be0a053074fba6e4b7062791f87bb695d039244c82",
-          "maximum_slop_score": 55.1
+          "severity": "notice",
+          "content_sha256": "e937e2cf17734ad108a799650e0dbe17b5d1c989e010ccc2ba3d9b3426e7190b",
+          "maximum_slop_score": 50.2
         },
         {
-          "path": "tests/adoption_state_contracts.rs",
+          "path": "xtask/src/workflows/tests/group_4.rs",
           "reason": "worse_band",
           "severity": "notice",
-          "content_sha256": "b246690477fadbaeef01be517de5bb00c0daf82d66ca04515e4c67da0e0f7cd5",
-          "maximum_slop_score": 25.5
-        },
-        {
-          "path": "xtask/src/release.rs",
-          "reason": "material_score_increase",
-          "severity": "notice",
-          "content_sha256": "6aa87394170e0838833a411cbf3fd5e2949fe5eaf4f13d1aef5da595b93dbf84",
-          "maximum_slop_score": 36.0
-        },
-        {
-          "path": "xtask/src/repository.rs",
-          "reason": "material_score_increase",
-          "severity": "notice",
-          "content_sha256": "4d2d3424c4a157df477fb08eb37cf8e692551792b96099af1268a41ee40a7626",
-          "maximum_slop_score": 14.8
+          "content_sha256": "6f3d14e317f2ac288ccd9d80c7da9b3c526aabe40fe8fcdd33344e1f07629b78",
+          "maximum_slop_score": 29.7
         }
       ]
     }

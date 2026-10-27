@@ -7,6 +7,8 @@ use serde_yaml::Value as YamlValue;
 
 #[path = "workflows/canary.rs"]
 mod canary;
+#[path = "workflows/dogfood.rs"]
+mod dogfood;
 
 const RELEASE_WORKFLOW_FRAGMENTS: [&str; 10] = [
     "00-header.yml",
@@ -21,25 +23,22 @@ const RELEASE_WORKFLOW_FRAGMENTS: [&str; 10] = [
     "90-marketplace-ready.yml",
 ];
 
-const CODEX_WORKFLOWS: [&str; 4] = [
+const CODEX_WORKFLOWS: [&str; 3] = [
     "dependency-remediation.yml",
-    "docs-taxonomy.yml",
     "governance-reconcile.yml",
     "merge-on-green.yml",
 ];
 
-const AGENT_PLUGIN_WORKFLOWS: [&str; 5] = [
+const CONSUMER_TOOL_WORKFLOWS: [&str; 4] = [
     "dependency-remediation.yml",
-    "docs-taxonomy.yml",
     "governance-reconcile.yml",
     "merge-on-green.yml",
     "execution_state_sync.yml",
 ];
 
-const AGENT_PLUGIN_WRAPPER: &str = "scripts/with-agent-plugins.sh";
-const PREPARE_COMMAND: &str = "scripts/with-agent-plugins.sh --prepare";
-const VERIFY_COMMAND: &str = "scripts/with-agent-plugins.sh --verify";
-const MARKETPLACE_COMMAND: &str = "scripts/with-agent-plugins.sh marketplace install";
+const GH_STEWARD_PREPARE_COMMAND: &str = "scripts/with-gh-steward.sh --prepare";
+const GH_STEWARD_VERIFY_COMMAND: &str = "scripts/with-gh-steward.sh --verify";
+const CODEX_PLUGIN_SETUP_COMMAND: &str = "scripts/prepare-codex-plugins.sh";
 const RELEASE_TARGETS: [&str; 7] = [
     "aarch64-apple-darwin",
     "aarch64-pc-windows-msvc",
@@ -65,15 +64,15 @@ const PUBLIC_RELEASE_WORKFLOWS: [&str; 3] = [
     "release-published.yml",
     "homebrew-handoff.yml",
 ];
-const PRIVATE_RUNTIME_SURFACES: [&str; 8] = [
+const CONSUMER_TOOL_SURFACES: [&str; 8] = [
     "AGENT_PLUGINS_READ_TOKEN",
     "AGENT_PLUGINS_GIT_TOKEN",
-    AGENT_PLUGIN_WRAPPER,
+    GH_STEWARD_PREPARE_COMMAND,
+    CODEX_PLUGIN_SETUP_COMMAND,
     ".agents/plugins/marketplace-source.json",
-    "coreycoto/agent-plugins",
-    "agent-plugins-marketplace",
-    "agent-plugins-runtime",
-    "marketplace install",
+    ".agents/gh-steward.lock.json",
+    "coreycoto/gh-steward",
+    ".artifacts/gh-steward",
 ];
 const CRATES_IO_VERSION_ENDPOINT: &str = "https://crates.io/api/v1/crates/git-slop/${VERSION}";
 const CRATES_IO_RELEASE_USER_AGENT: &str =
@@ -123,14 +122,21 @@ pub fn validate(repo_root: &Path) -> Vec<String> {
                 &mut errors,
             );
         }
-        require(&text, MARKETPLACE_COMMAND, name, &mut errors);
+        require(&text, CODEX_PLUGIN_SETUP_COMMAND, name, &mut errors);
+        require(&text, GH_STEWARD_PREPARE_COMMAND, name, &mut errors);
+        require(&text, GH_STEWARD_VERIFY_COMMAND, name, &mut errors);
         require(
             &text,
             "codex-home: ${{ runner.temp }}/codex-runtime/.codex",
             name,
             &mut errors,
         );
-        require(&text, r#""--profile","ci_mutation""#, name, &mut errors);
+        require(
+            &text,
+            "sed -i 's/^approval_policy = \"on-request\"$/approval_policy = \"never\"/'",
+            name,
+            &mut errors,
+        );
         require(&text, "cargo xtask validate-codex", name, &mut errors);
         forbid(&text, "uv sync", name, &mut errors);
         forbid(
@@ -141,14 +147,20 @@ pub fn validate(repo_root: &Path) -> Vec<String> {
         );
     }
 
-    validate_agent_plugin_runtime(&workflows, &mut errors);
+    validate_consumer_tool_workflows(&workflows, &mut errors);
     validate_public_release_workflows(repo_root, &mut errors);
     validate_packaged_contracts_script(repo_root, &mut errors);
 
-    for name in ["docs-taxonomy.yml", "merge-on-green.yml"] {
+    for name in ["merge-on-green.yml", "governance-reconcile.yml"] {
         if let Some(text) = read(&workflows.join(name), &mut errors) {
             forbid(&text, "gpt-5.4-nano", name, &mut errors);
-            require(&text, r#""--model","gpt-5.6-luna""#, name, &mut errors);
+            require(&text, "model: gpt-6.1-sol", name, &mut errors);
+            require(
+                &text,
+                r#""--config","model_reasoning_effort=high""#,
+                name,
+                &mut errors,
+            );
         }
     }
 
@@ -249,7 +261,7 @@ pub(crate) fn validate_public_release_workflows(repo_root: &Path, errors: &mut V
         ("release-published.yml", relay_text.as_str()),
         ("homebrew-handoff.yml", homebrew_text.as_str()),
     ] {
-        validate_no_private_runtime(name, text, errors);
+        validate_no_consumer_tools(name, text, errors);
     }
     validate_release_publish(&publish_text, &publish, errors);
     validate_release_relay(&relay_text, &relay, errors);
@@ -271,8 +283,8 @@ fn load_workflow(
     }
 }
 
-fn validate_no_private_runtime(name: &str, text: &str, errors: &mut Vec<String>) {
-    for forbidden in PRIVATE_RUNTIME_SURFACES {
+fn validate_no_consumer_tools(name: &str, text: &str, errors: &mut Vec<String>) {
+    for forbidden in CONSUMER_TOOL_SURFACES {
         forbid(text, forbidden, name, errors);
     }
 }

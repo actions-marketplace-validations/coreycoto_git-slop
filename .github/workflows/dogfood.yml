@@ -63,12 +63,21 @@ jobs:
       - name: Verify committed adoption metadata
         run: target/release/git-slop init --check
 
-      - name: Run detector
+      - name: Fix analysis clock to the exact source revision
+        id: analysis-clock
         shell: bash
         run: |
           set -euo pipefail
+          printf 'as_of=%s\n' "$(git show -s --format=%cI HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Run detector
+        shell: bash
+        env:
+          ANALYSIS_AS_OF: ${{ steps.analysis-clock.outputs.as_of }}
+        run: |
+          set -euo pipefail
           detector_log="$RUNNER_TEMP/git-slop-find.log"
-          if ! target/release/git-slop find >"$detector_log" 2>&1; then
+          if ! target/release/git-slop find --as-of "$ANALYSIS_AS_OF" >"$detector_log" 2>&1; then
             echo "Git Slop detector failed. Raw output is suppressed because repository paths are untrusted." >&2
             exit 1
           fi
@@ -80,6 +89,7 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          ANALYSIS_AS_OF: ${{ steps.analysis-clock.outputs.as_of }}
         run: |
           set -euo pipefail
           base_worktree="$RUNNER_TEMP/git-slop-base"
@@ -95,13 +105,14 @@ jobs:
           GIT_CONFIG_COUNT=1 \
           GIT_CONFIG_KEY_0=core.excludesfile \
           GIT_CONFIG_VALUE_0="$RUNNER_TEMP/dogfood-base-excludes" \
-            target/release/git-slop --repo "$base_worktree" find --quiet --no-progress --no-cache \
+            target/release/git-slop --repo "$base_worktree" find --as-of "$ANALYSIS_AS_OF" --quiet --no-progress --no-cache \
             --state-dir "$RUNNER_TEMP/base-state" --output-dir "$RUNNER_TEMP/base-output"
           target/release/git-slop baseline --state-dir "$RUNNER_TEMP/dogfood-baselines" ensure \
             --name dogfood-pr-base --report "$RUNNER_TEMP/base-output/latest/report.json" --format json \
             | jq -e '.name == "dogfood-pr-base"'
 
       - name: Enforce pull-request regressions
+        id: regressions
         if: github.event_name == 'pull_request' && steps.pr-baseline.outputs.enforce == 'true'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -112,11 +123,34 @@ jobs:
           target/release/git-slop compare --state-dir "$RUNNER_TEMP/dogfood-baselines" \
             --baseline dogfood-pr-base --head .slop/latest/report.json \
             --format json --detail full --limit 1000 >"$comparison"
-          scripts/verify-dogfood-regressions.sh \
-            config/github/dogfood-regression-acceptances.json \
-            "$comparison" .slop/latest/report.json "$BASE_SHA" "$HEAD_SHA"
+          printf 'Dogfood comparison: base=%s head=%s\n' "$BASE_SHA" "$HEAD_SHA"
           target/release/git-slop compare --state-dir "$RUNNER_TEMP/dogfood-baselines" \
-            --baseline dogfood-pr-base --head .slop/latest/report.json
+            --baseline dogfood-pr-base --head .slop/latest/report.json --top 10
+          if scripts/verify-dogfood-regressions.sh \
+            config/github/dogfood-regression-acceptances.json \
+            "$comparison" .slop/latest/report.json "$BASE_SHA" "$HEAD_SHA"; then
+            :
+          else
+            verification_status=$?
+            {
+              printf '\n### Dogfood regression verification failed\n\n'
+              printf 'Exact source: base %s, head %s.\n\n' "$BASE_SHA" "$HEAD_SHA"
+              printf 'The bounded, escaped comparison is in the job log. Download git-slop-dogfood-failure-%s-%s for the complete comparison and head report, including regression paths, scores and content hashes.\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit "$verification_status"
+          fi
+
+      - name: Upload full Dogfood regression evidence on failure
+        if: failure() && steps.regressions.outcome == 'failure'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: git-slop-dogfood-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/dogfood-comparison.json
+            .slop/latest/report.json
+          if-no-files-found: warn
+          retention-days: 14
+          include-hidden-files: true
 
       - name: Preview first-adoption comparison
         if: github.event_name == 'pull_request' && steps.pr-baseline.outputs.enforce != 'true'
